@@ -1,2 +1,1 @@
-# Bala-Box
-A tool box for ai an control
+现在暂时只有同时重命名图像和标签的功能
