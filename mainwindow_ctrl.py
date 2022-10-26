@@ -17,12 +17,14 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         super(MainWindow_ctrl, self).__init__()
         super().setupUi(MainWindow)
 
-        self.start_mum = 1
+        self.start_num = 1
         self.img_dir = ''
         self.label_dir = ''
         self.save_dir = ''
         self.img_suffix = self.img_format_box.currentText()
         self.label_suffix = self.label_format_box.currentText()
+        self.start_name = ''
+        self.rename_progress_bar.reset()
 
         self.init_dir = 'D://'
 
@@ -60,68 +62,51 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
 
         self.img_suffix = self.img_format_box.currentText()
         self.label_suffix = self.label_format_box.currentText()
+        self.start_num = self.start_num_box.value()
+        self.start_name = self.start_name_edit.text()
 
-        att_window = Att_ctrl(self.save_dir, self.img_dir, self.label_dir, self.img_suffix, self.label_suffix,
-                              self.start_mum)
-        # print(img_format)
+        result = QMessageBox.information(self, "提示",
+                                         f"保存文件夹: {self.save_dir}\n\n图片文件夹: {self.img_dir}\n\n标签文件夹: {self.label_dir}\n"
+                                         f"\n图片格式： {self.img_suffix}\t标签格式： {self.label_suffix}"
+                                         f"\n\n确定执行？？？",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
-        att_window.show()
-        # att_window.get_data()
-        # self.start_rename()
-        # sys.exit(app.exec_())
+        if result == QMessageBox.Yes:
+            self.replace()
 
-
-class Att_ctrl(QWidget, att.Ui_Form):
-    def __init__(self, save_dir, img_dir, label_dir, img_suffix, label_suffix, start_num):
-        super(Att_ctrl, self).__init__()
-        self.setupUi(self)
-
-        self.save_dir = save_dir
-        self.img_dir = img_dir
-        self.label_dir = label_dir
-        self.img_suffix = img_suffix
-        self.label_suffix = label_suffix
-        self.start_num = start_num
-
-        self.img_dir_att.setText(f"图片文件夹: {img_dir}")
-        self.label_dir_att.setText(f"标签文件夹: {label_dir}")
-        self.save_dir_att.setText(f"保存文件夹: {save_dir}")
-
-        self.confirm.clicked.connect(lambda: self.replace())
-        self.dont.clicked.connect(lambda: self.close())
-
-    # def just_do(self):
-    #     self.close()
-    #     # print(self.label_suffix)
-    #     # print(self.img_suffix)
-    #     # print("2")
-    #     rename_return = self.rename.replace()
-    #     if rename_return == 1:
-    #         QMessageBox.information(self, "成功", f"文件已保存至{self.save_dir}/the_new_")
-
-    # def get_data():
     def replace(self):
-        # start_num = 1  # 开始数字
-        self.close()
-
         save_dir_name = 'the_new'
-        img_paths = []
         img_names = []
+        # 拓展名不同的文件
         label_names = []
-        for file in os.listdir(self.img_dir):
-            img_file_path = os.path.join(self.img_dir, file)
+        other_img_names = []
+        other_label_names = []
+        for img_file in os.listdir(self.img_dir):
+            img_file_path = os.path.join(self.img_dir, img_file)
             if not os.path.isdir(img_file_path):
                 if os.path.splitext(img_file_path)[1] == self.img_suffix:
-                    img_names.append(os.path.splitext(file)[0])
-                    img_paths.append(img_file_path)
+                    img_names.append(os.path.splitext(img_file)[0])
+                else:
+                    other_img_names.append(img_file)
 
         for file in os.listdir(self.label_dir):
             label_file_dir = os.path.join(self.label_dir, file)
             if not os.path.isdir(label_file_dir):
                 if os.path.splitext(file)[1] == self.label_suffix:
                     label_names.append(os.path.splitext(file)[0])
+                else:
+                    other_label_names.append(file)
 
-        same_names = list(set(img_names) & set(label_names))
+        # 取出共同元素
+        img_names_set = set(img_names)
+        label_names_set = set(label_names)
+        same_names_set = img_names_set & label_names_set
+        same_names = list(same_names_set)
+        other_labels = list(label_names_set - same_names_set)
+        other_imgs = list(img_names_set - same_names_set)
+
+        same_names_num = len(same_names)
+        self.rename_progress_bar.setRange(0, same_names_num + 1)
 
         while os.path.exists(f"{self.save_dir}\\{save_dir_name}"):
             save_dir_name += '1'
@@ -134,14 +119,47 @@ class Att_ctrl(QWidget, att.Ui_Form):
         for name in same_names:
             img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
             label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
-            img_final_path = f"{self.save_dir}\\{save_dir_name}\\imgs\\{self.start_num}{self.img_suffix}"
-            label_final_path = f"{self.save_dir}\\{save_dir_name}\\labels\\{self.start_num}{self.label_suffix}"
+            img_final_path = f"{self.save_dir}\\{save_dir_name}\\imgs\\{self.start_name}{self.start_num}{self.img_suffix}"
+            label_final_path = f"{self.save_dir}\\{save_dir_name}\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
 
             shutil.copyfile(img_act_path, img_final_path)
             shutil.copyfile(label_act_path, label_final_path)
 
             self.start_num += 1
             rename_file_num += 1
+            self.rename_progress_bar.setValue(rename_file_num)
+
+        other_dir_name = f'{save_dir_name}\\Error'
+        # while os.path.exists(f"{self.save_dir}\\{other_dir_name}"):
+        #     other_dir_name += '1'
+        os.mkdir(f"{self.save_dir}\\{other_dir_name}")
+        if other_imgs:
+            os.mkdir(f"{self.save_dir}\\{other_dir_name}\\img_single_error")
+            for other_img in other_imgs:
+                img_act_path = f"{self.img_dir}\\{other_img}{self.img_suffix}"
+                img_final_path = f"{self.save_dir}\\{other_dir_name}\\img_single_error\\{other_img}{self.img_suffix}"
+                shutil.copyfile(img_act_path, img_final_path)
+        if other_labels:
+            os.mkdir(f"{self.save_dir}\\{other_dir_name}\\label_single_error")
+            for other_label in other_labels:
+                label_act_path = f"{self.label_dir}\\{other_label}{self.label_suffix}"
+                label_final_path = f"{self.save_dir}\\{other_dir_name}\\label_single_error\\{other_label}" \
+                                   f"{self.label_suffix} "
+                shutil.copyfile(label_act_path, label_final_path)
+        if other_img_names:
+            os.mkdir(f"{self.save_dir}\\{other_dir_name}\\img_suffix_error")
+            for other_img in other_img_names:
+                img_act_path = f"{self.img_dir}\\{other_img}"
+                img_final_path = f"{self.save_dir}\\{other_dir_name}\\img_suffix_error\\{other_img}"
+                shutil.copyfile(img_act_path, img_final_path)
+        if other_label_names:
+            os.mkdir(f"{self.save_dir}\\{other_dir_name}\\label_suffix_error")
+            for other_label in other_label_names:
+                img_act_path = f"{self.label_dir}\\{other_label}"
+                img_final_path = f"{self.save_dir}\\{other_dir_name}\\label_suffix_error\\{other_label}"
+                shutil.copyfile(img_act_path, img_final_path)
+
+        self.rename_progress_bar.setValue(same_names_num+1)
 
         QMessageBox.information(self, "成功",
                                 f"文件已保存至{self.save_dir}/{save_dir_name}\n\n已成功重命名{rename_file_num}个文件")

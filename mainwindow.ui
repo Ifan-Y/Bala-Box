@@ -81,8 +81,8 @@
    <widget class="QPushButton" name="do_botton">
     <property name="geometry">
      <rect>
-      <x>150</x>
-      <y>440</y>
+      <x>80</x>
+      <y>490</y>
       <width>131</width>
       <height>41</height>
      </rect>
@@ -278,6 +278,77 @@
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="start_num_label">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>400</y>
+      <width>201</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Panel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
+    <property name="text">
+     <string>起始数字</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="start_num_box">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>410</y>
+      <width>71</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="name_label">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>390</y>
+      <width>301</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Panel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
+    <property name="text">
+     <string>数字前标识</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="start_name_edit">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>410</y>
+      <width>141</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="rename_progress_bar">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>500</y>
+      <width>331</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>24</number>
+    </property>
+   </widget>
    <zorder>save_dir_label</zorder>
    <zorder>img_format_label</zorder>
    <zorder>img_dir_label</zorder>
@@ -292,6 +363,11 @@
    <zorder>save_dir_input_edit</zorder>
    <zorder>img_dir_input_edit</zorder>
    <zorder>label_dir_input_edit</zorder>
+   <zorder>start_num_label</zorder>
+   <zorder>start_num_box</zorder>
+   <zorder>name_label</zorder>
+   <zorder>start_name_edit</zorder>
+   <zorder>rename_progress_bar</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
