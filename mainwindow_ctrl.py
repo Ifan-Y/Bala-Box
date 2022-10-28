@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import random
 
 # import att_ctrl
 import qdarkstyle
@@ -24,6 +25,9 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         self.img_suffix = self.img_format_box.currentText()
         self.label_suffix = self.label_format_box.currentText()
         self.start_name = ''
+        self.train_file_proportion = 0
+        self.val_file_proportion = 0
+        self.test_file_proportion = 0
         self.rename_progress_bar.reset()
         self.start_num_box.setMaximum(9999)
 
@@ -32,6 +36,10 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         self.img_dir_input_botton.clicked.connect(lambda: self.choose_img_dir())
         self.label_dir_input_botton.clicked.connect(lambda: self.choose_label_dir())
         self.save_dir_input_botton.clicked.connect(lambda: self.choose_save_dir())
+
+        self.train_proportion_box.setRange(1, 99)
+        self.val_proportion_box.setRange(0, 99)
+        self.train_proportion_box.setRange(0, 99)
 
         self.do_botton.clicked.connect(lambda: self.start())
 
@@ -66,11 +74,24 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         self.start_num = self.start_num_box.value()
         self.start_name = self.start_name_edit.text()
 
-        result = QMessageBox.information(self, "提示",
-                                         f"保存文件夹: {self.save_dir}\n\n图片文件夹: {self.img_dir}\n\n标签文件夹: {self.label_dir}\n"
-                                         f"\n图片格式： {self.img_suffix}\t标签格式： {self.label_suffix}"
-                                         f"\n\n确定执行？？？",
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if self.check_split_box.isChecked():
+            self.train_file_proportion = self.train_proportion_box.value()
+            self.val_file_proportion = self.val_proportion_box.value()
+            self.test_file_proportion = self.test_proportion_box.value()
+
+        if self.check_split_box.isChecked():
+            result = QMessageBox.information(self, "提示",
+                                             f"保存文件夹: {self.save_dir}\n\n图片文件夹: {self.img_dir}\n\n标签文件夹: {self.label_dir}\n"
+                                             f"\n图片格式： {self.img_suffix}\t标签格式： {self.label_suffix}"
+                                             f"\n\n数据将被打乱顺序加入三个文件夹"
+                                             f"\n\n确定执行？？？",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        else:
+            result = QMessageBox.information(self, "提示",
+                                             f"保存文件夹: {self.save_dir}\n\n图片文件夹: {self.img_dir}\n\n标签文件夹: {self.label_dir}\n"
+                                             f"\n图片格式： {self.img_suffix}\t标签格式： {self.label_suffix}"
+                                             f"\n\n确定执行？？？",
+                                             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
         if result == QMessageBox.Yes:
             self.replace()
@@ -120,25 +141,76 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         while os.path.exists(f"{self.save_dir}\\{save_dir_name}"):
             save_dir_name += '1'
         os.mkdir(f"{self.save_dir}\\{save_dir_name}")
-        os.mkdir(f"{self.save_dir}\\{save_dir_name}\\images")
-        os.mkdir(f"{self.save_dir}\\{save_dir_name}\\labels")
 
-        rename_file_num = 0
+        if not self.check_split_box.isChecked():
 
-        for name in same_names:
-            img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
-            label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
-            img_final_path = f"{self.save_dir}\\{save_dir_name}\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
-            label_final_path = f"{self.save_dir}\\{save_dir_name}\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\images")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\labels")
 
-            shutil.copyfile(img_act_path, img_final_path)
-            shutil.copyfile(label_act_path, label_final_path)
+            rename_file_num = 0
 
-            self.start_num += 1
-            rename_file_num += 1
-            self.rename_progress_bar.setValue(rename_file_num)
+            for name in same_names:
+                img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
+                label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
+                img_final_path = f"{self.save_dir}\\{save_dir_name}\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
+                label_final_path = f"{self.save_dir}\\{save_dir_name}\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
 
-        now_num = rename_file_num
+                shutil.copyfile(img_act_path, img_final_path)
+                shutil.copyfile(label_act_path, label_final_path)
+
+                self.start_num += 1
+                rename_file_num += 1
+                self.rename_progress_bar.setValue(rename_file_num)
+
+            now_num = rename_file_num
+
+        else:
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\train")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\val")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\test")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\train\\images")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\train\\labels")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\val\\images")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\val\\labels")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\test\\images")
+            os.mkdir(f"{self.save_dir}\\{save_dir_name}\\test\\labels")
+
+            proportion_num = self.train_file_proportion + self.val_file_proportion + self.test_file_proportion
+            same_name_num = len(same_names)
+            train_file_num = int((self.train_file_proportion / proportion_num) * same_name_num)
+            val_file_num = int((self.val_file_proportion / proportion_num) * same_name_num)
+            test_file_num = same_name_num - train_file_num - val_file_num
+
+            rename_file_num = 0
+
+            random.shuffle(same_names)
+            for name in same_names:
+                if rename_file_num < train_file_num:
+                    img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
+                    label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
+                    img_final_path = f"{self.save_dir}\\{save_dir_name}\\train\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
+                    label_final_path = f"{self.save_dir}\\{save_dir_name}\\train\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
+
+                elif rename_file_num < train_file_num + val_file_num:
+                    img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
+                    label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
+                    img_final_path = f"{self.save_dir}\\{save_dir_name}\\val\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
+                    label_final_path = f"{self.save_dir}\\{save_dir_name}\\val\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
+
+                else:
+                    img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
+                    label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
+                    img_final_path = f"{self.save_dir}\\{save_dir_name}\\test\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
+                    label_final_path = f"{self.save_dir}\\{save_dir_name}\\test\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
+
+                shutil.copyfile(img_act_path, img_final_path)
+                shutil.copyfile(label_act_path, label_final_path)
+
+                self.start_num += 1
+                rename_file_num += 1
+                self.rename_progress_bar.setValue(rename_file_num)
+
+            now_num = rename_file_num
 
         other_dir_name = f'{save_dir_name}\\Error'
         # while os.path.exists(f"{self.save_dir}\\{other_dir_name}"):
