@@ -120,7 +120,7 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         while os.path.exists(f"{self.save_dir}\\{save_dir_name}"):
             save_dir_name += '1'
         os.mkdir(f"{self.save_dir}\\{save_dir_name}")
-        os.mkdir(f"{self.save_dir}\\{save_dir_name}\\imgs")
+        os.mkdir(f"{self.save_dir}\\{save_dir_name}\\images")
         os.mkdir(f"{self.save_dir}\\{save_dir_name}\\labels")
 
         rename_file_num = 0
@@ -128,7 +128,7 @@ class MainWindow_ctrl(QMainWindow, mainwindow.Ui_MainWindow):
         for name in same_names:
             img_act_path = f"{self.img_dir}\\{name}{self.img_suffix}"
             label_act_path = f"{self.label_dir}\\{name}{self.label_suffix}"
-            img_final_path = f"{self.save_dir}\\{save_dir_name}\\imgs\\{self.start_name}{self.start_num}{self.img_suffix}"
+            img_final_path = f"{self.save_dir}\\{save_dir_name}\\images\\{self.start_name}{self.start_num}{self.img_suffix}"
             label_final_path = f"{self.save_dir}\\{save_dir_name}\\labels\\{self.start_name}{self.start_num}{self.label_suffix}"
 
             shutil.copyfile(img_act_path, img_final_path)
